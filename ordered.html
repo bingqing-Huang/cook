@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黄记茶餐厅 · 点单记录</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0c0801;
+      --surface: #18110a;
+      --card:    #231808;
+      --gold:    #c9a84c;
+      --gold2:   #e8c870;
+      --cream:   #f4e5c2;
+      --muted:   #7a6a52;
+      --red:     #c03030;
+      --green:   #3a8a4a;
+      --r:       12px;
+    }
+
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: -apple-system, 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* HEADER */
+    #header {
+      position: sticky; top: 0; z-index: 100;
+      background: linear-gradient(to bottom, #1e1206, var(--bg) 100%);
+      padding: 14px 16px 12px;
+      text-align: center;
+      border-bottom: 1px solid rgba(201,168,76,.15);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px;
+    }
+    .back-btn {
+      position: absolute; left: 16px;
+      background: none; border: none;
+      color: var(--gold); font-size: 20px; cursor: pointer;
+      padding: 4px 8px;
+    }
+    .restaurant-name {
+      font-size: 19px; font-weight: 800;
+      color: var(--gold); letter-spacing: 3px;
+    }
+    .restaurant-sub {
+      font-size: 10px; color: var(--muted);
+      letter-spacing: 3px; margin-top: 2px;
+      text-transform: uppercase; text-align: center;
+    }
+
+    /* TOOLBAR */
+    #toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .count-label {
+      font-size: 13px; color: var(--muted);
+    }
+    .clear-all-btn {
+      background: none; border: 1px solid rgba(192,48,48,.4);
+      color: var(--red); border-radius: 8px;
+      padding: 5px 12px; font-size: 12px; cursor: pointer;
+    }
+    .clear-all-btn:hover { background: rgba(192,48,48,.1); }
+
+    /* EMPTY */
+    #empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 80px 20px; gap: 12px;
+    }
+    .empty-icon { font-size: 64px; }
+    .empty-text { font-size: 16px; color: var(--muted); }
+    .go-order {
+      margin-top: 8px; padding: 12px 32px;
+      background: var(--gold); color: #1a0e00;
+      border: none; border-radius: 24px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      text-decoration: none;
+    }
+
+    /* ORDER LIST */
+    #order-list { padding: 12px 14px; display: flex; flex-direction: column; gap: 14px; }
+
+    .order-card {
+      background: var(--card);
+      border-radius: var(--r);
+      border: 1px solid rgba(201,168,76,.12);
+      overflow: hidden;
+    }
+
+    .order-head {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px;
+    }
+    .order-meta { flex: 1; }
+    .order-date {
+      font-size: 15px; font-weight: 700; color: var(--gold2);
+    }
+    .order-time {
+      font-size: 11px; color: var(--muted); margin-top: 2px;
+    }
+    .order-delete {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 16px; padding: 2px 4px;
+      transition: color .15s;
+    }
+    .order-delete:hover { color: var(--red); }
+
+    .order-body { padding: 10px 14px 14px; }
+
+    .cat-group { margin-bottom: 8px; }
+    .cat-group:last-child { margin-bottom: 0; }
+    .cat-name {
+      font-size: 11px; color: var(--muted); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 4px;
+    }
+    .item-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 3px 0;
+      font-size: 14px; color: var(--cream);
+    }
+    .item-qty {
+      margin-left: auto;
+      font-size: 13px; color: var(--gold);
+      font-weight: 600; white-space: nowrap;
+    }
+
+    .order-note {
+      margin-top: 10px; padding: 8px 10px;
+      background: var(--surface); border-radius: 8px;
+      font-size: 12px; color: var(--muted);
+      border-left: 2px solid rgba(201,168,76,.3);
+    }
+    .order-note span { color: var(--cream); }
+
+    .badge-meal {
+      display: inline-block;
+      background: rgba(201,168,76,.15);
+      color: var(--gold); border-radius: 6px;
+      padding: 2px 8px; font-size: 11px; font-weight: 600;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <button class="back-btn" onclick="location.href='index.html'">←</button>
+  <div>
+    <div class="restaurant-name">👑 黄记茶餐厅</div>
+    <div class="restaurant-sub">Order History · 点单记录</div>
+  </div>
+</div>
+
+<div id="toolbar">
+  <div class="count-label" id="count-label">共 0 条点单</div>
+  <button class="clear-all-btn" onclick="clearAll()">清空记录</button>
+</div>
+
+<div id="empty" style="display:none">
+  <div class="empty-icon">📋</div>
+  <div class="empty-text">暂无点单记录</div>
+  <a class="go-order" href="index.html">去点菜</a>
+</div>
+
+<div id="order-list"></div>
+
+<script>
+function getHistory() {
+  return JSON.parse(localStorage.getItem('orderHistory') || '[]');
+}
+
+function saveHistory(h) {
+  localStorage.setItem('orderHistory', JSON.stringify(h));
+}
+
+function formatTimestamp(iso) {
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function renderOrder(record) {
+  // Group items by category
+  const bycat = {};
+  record.items.forEach(it => {
+    if (!bycat[it.cat]) bycat[it.cat] = [];
+    bycat[it.cat].push(it);
+  });
+
+  const catHTML = Object.entries(bycat).map(([cat, items]) => `
+    <div class="cat-group">
+      <div class="cat-name">${cat}</div>
+      ${items.map(it => `
+        <div class="item-row">
+          <span>${it.e}</span>
+          <span>${it.name}</span>
+          <span class="item-qty">× ${it.qty}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const noteHTML = record.note
+    ? `<div class="order-note">备注：<span>${record.note}</span></div>`
+    : '';
+
+  return `
+    <div class="order-card" id="oc-${record.id}">
+      <div class="order-head">
+        <div class="order-meta">
+          <div class="order-date">
+            ${record.date}
+            <span class="badge-meal">${record.meal}</span>
+          </div>
+          <div class="order-time">提交于 ${formatTimestamp(record.timestamp)}</div>
+        </div>
+        <button class="order-delete" onclick="deleteOrder(${record.id})" title="删除">✕</button>
+      </div>
+      <div class="order-body">
+        ${catHTML}
+        ${noteHTML}
+      </div>
+    </div>`;
+}
+
+function render() {
+  const history = getHistory();
+  const list = document.getElementById('order-list');
+  const empty = document.getElementById('empty');
+  const label = document.getElementById('count-label');
+
+  label.textContent = `共 ${history.length} 条点单`;
+
+  if (!history.length) {
+    list.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  list.style.display = 'flex';
+  empty.style.display = 'none';
+  list.innerHTML = history.map(renderOrder).join('');
+}
+
+function deleteOrder(id) {
+  const h = getHistory().filter(r => r.id !== id);
+  saveHistory(h);
+  render();
+}
+
+function clearAll() {
+  if (!getHistory().length) return;
+  if (!confirm('确定清空所有点单记录吗？')) return;
+  localStorage.removeItem('orderHistory');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
